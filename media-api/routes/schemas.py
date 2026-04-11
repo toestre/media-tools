@@ -35,7 +35,7 @@ class PdfRenderBody(BaseModel):
     template: str = Field(default="default")
     paper: str = Field(default="a4")
     margin_mm: int = Field(default=25)
-    font: str = Field(default="libertinus")
+    font: str = Field(default="Source Serif Pro")
     toc: bool = Field(default=False)
     metadata: PdfMetadataBody = Field(default_factory=PdfMetadataBody)
 
