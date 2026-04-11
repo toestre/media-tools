@@ -1,0 +1,9 @@
+services:
+  media-api:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      - API_KEY=dev-secret
+    volumes:
+      - /tmp/media-api:/tmp
