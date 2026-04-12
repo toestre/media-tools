@@ -12,6 +12,8 @@ _ALLOWED_PAPER = frozenset({"a4", "a5", "letter"})
 def _resolve_typst_font_name(requested: str) -> str:
     aliases = {
         "libertinus": "Libertinus Serif",
+        "source": "Source Serif Pro",
+        "source-serif": "Source Serif Pro",
     }
     key = requested.strip().lower()
     if key in aliases:
