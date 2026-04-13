@@ -35,7 +35,7 @@ class PdfRenderBody(BaseModel):
     template: str = Field(default="default")
     paper: str = Field(default="a4")
     margin_mm: int = Field(default=25)
-    font: str = Field(default="Source Serif Pro")
+    font: str | None = Field(default=None)
     toc: bool = Field(default=False)
     metadata: PdfMetadataBody = Field(default_factory=PdfMetadataBody)
 
@@ -45,3 +45,13 @@ class PdfRenderBody(BaseModel):
         if not value.strip():
             raise ValueError("markdown must not be empty")
         return value
+
+    @field_validator("font")
+    @classmethod
+    def font_trim_or_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        if not stripped:
+            return None
+        return stripped

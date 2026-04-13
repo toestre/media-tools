@@ -75,7 +75,7 @@ Renders a Markdown document to PDF via Pandoc and Typst.
 | `template` | string | no | `default` | Typst template name |
 | `paper` | string | no | `a4` | Paper size: `a4`, `a5`, `letter` |
 | `margin_mm` | int | no | `25` | Page margin in mm |
-| `font` | string | no | `Source Serif Pro` | Typst font name |
+| `font` | string | no | – | Typst font name; omit to use the template default |
 | `toc` | bool | no | `false` | Generate table of contents |
 | `metadata` | object | no | `{}` | `title`, `author`, `date` |
 

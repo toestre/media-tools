@@ -43,7 +43,7 @@ def _build_frontmatter_lines(
     metadata: dict[str, str],
     toc: bool,
     papersize: str,
-    mainfont: str,
+    mainfont: str | None,
     margin_mm: int,
 ) -> list[str]:
     lines: list[str] = ["---"]
@@ -58,7 +58,8 @@ def _build_frontmatter_lines(
         lines.append(f"date: {_yaml_escape_scalar(date)}")
     lines.append(f"toc: {str(toc).lower()}")
     lines.append(f"papersize: {_yaml_escape_scalar(papersize)}")
-    lines.append(f"mainfont: {_yaml_escape_scalar(mainfont)}")
+    if mainfont is not None:
+        lines.append(f"mainfont: {_yaml_escape_scalar(mainfont)}")
     lines.append("margin:")
     for side in ("left", "right", "top", "bottom"):
         lines.append(f"  {side}: {margin_mm}mm")
@@ -72,7 +73,7 @@ def render_markdown_to_pdf(
     template_name: str,
     papersize: str,
     margin_mm: int,
-    font: str,
+    font: str | None,
     toc: bool,
     metadata: dict[str, str],
     templates_dir: str,
@@ -89,7 +90,11 @@ def render_markdown_to_pdf(
     if not template_path.is_file():
         raise FileNotFoundError(f"template not found: {template_name}")
 
-    mainfont = _resolve_typst_font_name(font)
+    mainfont: str | None
+    if font is None:
+        mainfont = None
+    else:
+        mainfont = _resolve_typst_font_name(font)
     fm = "\n".join(
         _build_frontmatter_lines(
             metadata=metadata,
