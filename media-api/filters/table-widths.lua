@@ -193,7 +193,6 @@ local function build_typst_table(tbl, col_widths, total_width, table_align)
 %s
 )
 ])
-)
 ]],
     block_align,
     width_percent,
