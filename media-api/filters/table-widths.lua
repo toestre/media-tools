@@ -4,6 +4,7 @@
 
 local pending_widths = nil
 local pending_total = nil
+local pending_align = nil
 
 -- Parse a comment like: table: cols=[0.1, 0.5, 0.4] total=0.85
 local function parse_hint(text)
@@ -24,7 +25,15 @@ local function parse_hint(text)
   end
 
   local total = tonumber(s:match("total=([%d%.]+)"))
-  return (#cols > 0 and cols or nil), total
+  local align = s:match("align=([%a]+)")
+  if align then
+    align = align:lower()
+    if align ~= "left" and align ~= "center" and align ~= "right" then
+      align = nil
+    end
+  end
+
+  return (#cols > 0 and cols or nil), total, align
 end
 
 -- Convert a Pandoc Alignment to a Typst align string
@@ -40,9 +49,44 @@ local function pandoc_align_to_typst(align)
   return "left"
 end
 
--- Render a single Pandoc Inline list to plain text (best-effort)
-local function inlines_to_str(inlines)
-  return pandoc.utils.stringify(inlines)
+local function escape_typst_text(text)
+  local escaped = text
+  escaped = escaped:gsub("\\", "\\\\")
+  escaped = escaped:gsub("#", "\\#")
+  escaped = escaped:gsub("%[", "\\[")
+  escaped = escaped:gsub("%]", "\\]")
+  return escaped
+end
+
+local function render_inline(inline)
+  if inline.t == "Str" then
+    return escape_typst_text(inline.text)
+  elseif inline.t == "Space" then
+    return " "
+  elseif inline.t == "SoftBreak" or inline.t == "LineBreak" then
+    return "\n"
+  elseif inline.t == "Strong" then
+    return "*" .. render_inlines(inline.content) .. "*"
+  elseif inline.t == "Emph" then
+    return "_" .. render_inlines(inline.content) .. "_"
+  elseif inline.t == "Code" then
+    return "`" .. escape_typst_text(inline.text) .. "`"
+  elseif inline.t == "Link" then
+    local label = render_inlines(inline.content)
+    local target = escape_typst_text(inline.target or "")
+    return '#link("' .. target .. '")[' .. label .. "]"
+  end
+
+  return escape_typst_text(pandoc.utils.stringify({ inline }))
+end
+
+-- Render a single Pandoc Inline list to Typst markup
+function render_inlines(inlines)
+  local parts = {}
+  for _, inline in ipairs(inlines) do
+    parts[#parts + 1] = render_inline(inline)
+  end
+  return table.concat(parts)
 end
 
 -- Render a cell (list of blocks) to a Typst cell string
@@ -50,14 +94,14 @@ local function blocks_to_typst_cell(blocks)
   local parts = {}
   for _, blk in ipairs(blocks) do
     if blk.t == "Para" or blk.t == "Plain" then
-      parts[#parts + 1] = inlines_to_str(blk.content)
+      parts[#parts + 1] = render_inlines(blk.content)
     end
   end
   return table.concat(parts, "\\n")
 end
 
 -- Build a raw Typst table block
-local function build_typst_table(tbl, col_widths, total_width)
+local function build_typst_table(tbl, col_widths, total_width, table_align)
   local col_specs = tbl.colspecs
   local head = tbl.head
   local bodies = tbl.bodies
@@ -80,6 +124,14 @@ local function build_typst_table(tbl, col_widths, total_width)
 
   local tw = total_width or 1.0
   local width_percent = tw * 100
+  local block_align = table_align
+  if not block_align then
+    if tw < 1.0 then
+      block_align = "center"
+    else
+      block_align = "left"
+    end
+  end
 
   local col_defs = {}
   for _, fraction in ipairs(fracs) do
@@ -97,7 +149,6 @@ local function build_typst_table(tbl, col_widths, total_width)
     for _, row in ipairs(rows) do
       for column_index, cell in ipairs(row.cells) do
         local text = blocks_to_typst_cell(cell.content)
-        text = text:gsub("[\\#]", "\\%0")
         local align = aligns[column_index] or "left"
         if is_header then
           lines[#lines + 1] = string.format(
@@ -132,7 +183,7 @@ local function build_typst_table(tbl, col_widths, total_width)
 
   local typst = string.format(
     [[
-#block(width: %.2f%%)[
+#align(%s, #block(width: %.2f%%)[
 #table(
   columns: (%s),
   stroke: (x: none, y: 0.5pt),
@@ -141,8 +192,10 @@ local function build_typst_table(tbl, col_widths, total_width)
 %s
 %s
 )
-]
+])
+)
 ]],
+    block_align,
     width_percent,
     columns_str,
     header_lines,
@@ -161,10 +214,11 @@ function Blocks(blocks)
 
     -- Detect hint comment
     if blk.t == "RawBlock" and blk.format == "html" then
-      local cols, total = parse_hint(blk.text)
-      if cols or total then
+      local cols, total, align = parse_hint(blk.text)
+      if cols or total or align then
         pending_widths = cols
         pending_total = total
+        pending_align = align
         -- swallow the comment block (don't emit it)
         i = i + 1
         goto continue
@@ -172,11 +226,17 @@ function Blocks(blocks)
     end
 
     -- Intercept Table
-    if blk.t == "Table" and (pending_widths or pending_total) then
-      local typst_src = build_typst_table(blk, pending_widths, pending_total)
+    if blk.t == "Table" and (pending_widths or pending_total or pending_align) then
+      local typst_src = build_typst_table(
+        blk,
+        pending_widths,
+        pending_total,
+        pending_align
+      )
       result[#result + 1] = pandoc.RawBlock("typst", typst_src)
       pending_widths = nil
       pending_total = nil
+      pending_align = nil
       i = i + 1
       goto continue
     end
@@ -185,6 +245,7 @@ function Blocks(blocks)
     if blk.t ~= "RawBlock" then
       pending_widths = nil
       pending_total = nil
+      pending_align = nil
     end
 
     result[#result + 1] = blk
