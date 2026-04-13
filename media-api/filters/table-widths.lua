@@ -183,7 +183,7 @@ local function build_typst_table(tbl, col_widths, total_width, table_align)
 
   local typst = string.format(
     [[
-#align(%s, #block(width: %.2f%%)[
+#align(%s, block(width: %.2f%%)[
 #table(
   columns: (%s),
   stroke: (x: none, y: 0.5pt),
