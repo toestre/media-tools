@@ -135,7 +135,7 @@ local function build_typst_table(tbl, col_widths, total_width)
 #block(width: %.2f%%)[
 #table(
   columns: (%s),
-  stroke: 0.5pt,
+  stroke: (x: none, y: 0.5pt),
   inset: 6pt,
   fill: (col, row) => if row == 0 { luma(230) } else { white },
 %s
