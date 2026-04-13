@@ -9,6 +9,18 @@ from services.runner import run_tool_stdin
 _ALLOWED_PAPER = frozenset({"a4", "a5", "letter"})
 
 
+def _resolve_table_filter_path() -> Path:
+    env_path = os.getenv("PANDOC_TABLE_FILTER")
+    if env_path:
+        candidate = Path(env_path)
+    else:
+        candidate = Path(__file__).resolve().parent.parent / "filters" / "table-widths.lua"
+
+    if not candidate.is_file():
+        raise FileNotFoundError(f"pandoc table filter not found: {candidate}")
+    return candidate
+
+
 def _resolve_typst_font_name(requested: str) -> str:
     aliases = {
         "libertinus": "Libertinus Serif",
@@ -100,6 +112,7 @@ def render_markdown_to_pdf(
         "typst",
         "--pdf-engine=typst",
         f"--template={template_path}",
+        f"--lua-filter={_resolve_table_filter_path()}",
         "-o",
         pdf_path,
         "-",

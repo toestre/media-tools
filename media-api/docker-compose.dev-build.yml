@@ -1,10 +1,9 @@
 services:
   media-api:
-    image: ghcr.io/toestre/media-tools:latest
+    build: .
     ports:
       - "3000:3000"
     environment:
       - API_KEY=dev-secret
     volumes:
-      - ./templates:/templates:ro
       - /tmp/media-api:/tmp

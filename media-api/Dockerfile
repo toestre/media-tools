@@ -25,6 +25,7 @@ RUN mkdir -p /fonts /templates /app
 # Fonts und Templates ins Image einbetten
 COPY fonts/     /fonts/
 COPY templates/ /templates/
+COPY filters/   /app/filters/
 
 # App (Paketstruktur unter /app beibehalten)
 COPY app.py /app/app.py
