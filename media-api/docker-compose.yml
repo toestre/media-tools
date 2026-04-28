@@ -2,7 +2,7 @@ services:
   media-api:
     image: ghcr.io/toestre/media-tools:latest
     ports:
-      - "3000:3000"
+      - "3001:3000"
     environment:
       - API_KEY=dev-secret
     volumes:
