@@ -71,6 +71,11 @@ local function render_inline(inline)
     return "_" .. render_inlines(inline.content) .. "_"
   elseif inline.t == "Code" then
     return "`" .. escape_typst_text(inline.text) .. "`"
+  elseif inline.t == "RawInline" then
+    if inline.format == "typst" then
+      return inline.text
+    end
+    return escape_typst_text(inline.text or "")
   elseif inline.t == "Link" then
     local label = render_inlines(inline.content)
     local raw_target = inline.target or ""
