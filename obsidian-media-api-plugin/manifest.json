@@ -1,0 +1,9 @@
+{
+  "id": "media-api-pdf-compile",
+  "name": "Media API PDF Compile",
+  "version": "1.0.0",
+  "minAppVersion": "1.5.0",
+  "description": "Compile Markdown notes to PDF via the media-api /pdf/render endpoint (local or remote).",
+  "author": "",
+  "isDesktopOnly": false
+}

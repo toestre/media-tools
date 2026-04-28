@@ -113,3 +113,8 @@ The image is built and pushed to the GitHub Container Registry on every push to 
 ghcr.io/toestre/media-tools:latest
 ghcr.io/toestre/media-tools:v1.0.0
 ```
+
+## Obsidian plugin
+
+To compile vault notes to PDF from [Obsidian](https://obsidian.md/) using this API, see [obsidian-media-api-plugin](obsidian-media-api-plugin/README.md).
+
