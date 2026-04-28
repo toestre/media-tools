@@ -73,7 +73,11 @@ local function render_inline(inline)
     return "`" .. escape_typst_text(inline.text) .. "`"
   elseif inline.t == "Link" then
     local label = render_inlines(inline.content)
-    local target = escape_typst_text(inline.target or "")
+    local raw_target = inline.target or ""
+    if raw_target:match("^<[^>]+>$") then
+      return "#link(" .. raw_target .. ")[" .. label .. "]"
+    end
+    local target = escape_typst_text(raw_target)
     return '#link("' .. target .. '")[' .. label .. "]"
   end
 
