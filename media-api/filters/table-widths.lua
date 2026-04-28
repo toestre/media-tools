@@ -70,7 +70,7 @@ local function render_inline(inline)
   elseif inline.t == "Emph" then
     return "_" .. render_inlines(inline.content) .. "_"
   elseif inline.t == "Code" then
-    return "`" .. escape_typst_text(inline.text) .. "`"
+    return "`" .. (inline.text or "") .. "`"
   elseif inline.t == "RawInline" then
     if inline.format == "typst" then
       return inline.text
@@ -190,6 +190,11 @@ local function build_typst_table(tbl, col_widths, total_width, table_align)
   end
   local body_lines = table.concat(body_lines_parts, "\n")
 
+  local header_block = ""
+  if header_lines ~= "" then
+    header_block = "  table.header(\n" .. header_lines .. "\n  ),"
+  end
+
   local typst = string.format(
     [[
 #align(%s, block(width: %.2f%%)[
@@ -206,7 +211,7 @@ local function build_typst_table(tbl, col_widths, total_width, table_align)
     block_align,
     width_percent,
     columns_str,
-    header_lines,
+    header_block,
     body_lines
   )
 
