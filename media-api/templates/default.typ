@@ -87,7 +87,7 @@ $endif$
   lang: "de",
   region: "DE",
   font: ("Source Serif Pro", "Noto Sans", "Libertinus Serif"),
-  font-heading: ("Source Sans Pro", "Noto Sans", "Libertinus Sans"),
+  font-heading: ("Source Sans Pro", "Noto Sans", "Noto Color Emoji","Libertinus Sans"),
   codefont: ("JetBrains Mono", "Fira Code", "Libertinus Mono"),
   mathfont: (),
   fontsize: 12pt,
