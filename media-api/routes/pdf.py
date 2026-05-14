@@ -10,6 +10,7 @@ from core.auth import require_api_key
 from core.config import TEMPLATES_DIR, TMP_DIR
 from routes.schemas import PdfRenderBody
 from services import pandoc
+from services.ytdlp import sanitize_download_stem
 
 bp = Blueprint("pdf", __name__, url_prefix="/pdf")
 
@@ -20,6 +21,15 @@ def _schedule_delete(path: str) -> None:
         if os.path.isfile(path):
             os.remove(path)
         return response
+
+
+def _pdf_attachment_name(explicit_basename: str | None) -> str:
+    if explicit_basename is None:
+        return "document.pdf"
+    base = Path(explicit_basename).name
+    stem_part = Path(base).stem if base else ""
+    stem = sanitize_download_stem(stem_part, max_length=180)
+    return f"{stem}.pdf"
 
 
 def _list_template_names() -> list[str]:
@@ -72,13 +82,15 @@ def render():
         tmp_dir=TMP_DIR,
     )
 
+    download_name = _pdf_attachment_name(body.filename)
+
     try:
         _schedule_delete(out_path)
         return send_file(
             out_path,
             mimetype="application/pdf",
             as_attachment=True,
-            download_name="document.pdf",
+            download_name=download_name,
         )
     except Exception:
         if os.path.isfile(out_path):

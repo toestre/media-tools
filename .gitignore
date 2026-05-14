@@ -4,3 +4,4 @@ tmp/
 tmp-*
 *.pdf
 oestreich-digital.typ
+__pycache__/

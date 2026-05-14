@@ -49,6 +49,7 @@ class PdfRenderBody(BaseModel):
     font: str | None = Field(default=None)
     toc: bool = Field(default=False)
     metadata: PdfMetadataBody = Field(default_factory=PdfMetadataBody)
+    filename: str | None = Field(default=None)
 
     @field_validator("markdown")
     @classmethod
@@ -60,6 +61,16 @@ class PdfRenderBody(BaseModel):
     @field_validator("font")
     @classmethod
     def font_trim_or_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        if not stripped:
+            return None
+        return stripped
+
+    @field_validator("filename")
+    @classmethod
+    def filename_trim_or_none(cls, value: str | None) -> str | None:
         if value is None:
             return None
         stripped = value.strip()

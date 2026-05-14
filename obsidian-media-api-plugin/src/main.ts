@@ -81,6 +81,7 @@ export default class MediaApiPdfPlugin
       metadataTitle: this.settings.metadataTitle,
       metadataAuthor: this.settings.metadataAuthor,
       metadataDate: this.settings.metadataDate,
+      filename: file.basename,
     });
 
     const apiKeyTrimmed = this.settings.apiKey.trim();

@@ -9,6 +9,7 @@ export interface PdfRenderRequestBody {
   font: string | undefined;
   toc: boolean;
   metadata: PdfRenderMetadataPayload;
+  filename?: string;
 }
 
 export interface PdfRenderMetadataPayload {
@@ -59,6 +60,7 @@ export interface BuildPdfRenderBodyArgs {
   metadataTitle: string;
   metadataAuthor: string;
   metadataDate: string;
+  filename?: string;
 }
 
 /** Build JSON body for /pdf/render (pure: does not mutate args). */
@@ -79,7 +81,8 @@ export function buildPdfRenderBody(args: BuildPdfRenderBodyArgs): PdfRenderReque
   const fontTrimmed = args.font.trim();
   const font: string | undefined = fontTrimmed === "" ? undefined : fontTrimmed;
 
-  return {
+  const filenameTrimmed = args.filename?.trim();
+  const body: PdfRenderRequestBody = {
     markdown: args.markdown,
     template: args.template,
     paper: args.paper,
@@ -88,6 +91,10 @@ export function buildPdfRenderBody(args: BuildPdfRenderBodyArgs): PdfRenderReque
     toc: args.toc,
     metadata,
   };
+  if (filenameTrimmed !== undefined && filenameTrimmed !== "") {
+    body.filename = filenameTrimmed;
+  }
+  return body;
 }
 
 export interface FetchPdfRenderArgs {

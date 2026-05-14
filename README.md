@@ -79,6 +79,7 @@ Renders a Markdown document to PDF via Pandoc and Typst.
 | `font` | string | no | – | Typst font name; omit to use the template default |
 | `toc` | bool | no | `false` | Generate table of contents |
 | `metadata` | object | no | `{}` | `title`, `author`, `date` |
+| `filename` | string | no | – | Suggested download basename; path segments stripped, stem sanitized, extension forced to `.pdf`. If omitted, `document.pdf`. |
 
 **Response:** PDF file download.
 
