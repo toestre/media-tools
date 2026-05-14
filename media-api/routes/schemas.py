@@ -1,5 +1,7 @@
 """Request body models."""
 
+from pathlib import Path
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
@@ -57,6 +59,15 @@ class PdfRenderBody(BaseModel):
         if not value.strip():
             raise ValueError("markdown must not be empty")
         return value
+
+    @field_validator("template")
+    @classmethod
+    def template_stem(cls, value: str) -> str:
+        stripped = value.strip()
+        if not stripped:
+            raise ValueError("template must not be empty")
+        basename = Path(stripped).name
+        return Path(basename).stem
 
     @field_validator("font")
     @classmethod
