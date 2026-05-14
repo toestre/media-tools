@@ -3,6 +3,7 @@
 import os
 import uuid
 from pathlib import Path
+from typing import Literal
 
 from flask import Blueprint, after_this_request, jsonify, request, send_file
 from werkzeug.utils import secure_filename
@@ -31,9 +32,10 @@ def _parse_form_int(name: str, raw: str | None) -> int | None:
         raise ValueError(f"{name} must be an integer") from None
 
 
-@bp.route("/convert", methods=["POST"])
-@require_api_key
-def convert():
+def _audio_transform_response(
+    *,
+    outcome_label: Literal["converted", "resampled"],
+):
     if "file" not in request.files:
         return jsonify({"detail": "Missing file field"}), 400
 
@@ -74,15 +76,32 @@ def convert():
         if os.path.isfile(in_path):
             os.remove(in_path)
 
+    base_stem = Path(safe_name).stem if safe_name else ""
+    if base_stem == "":
+        base_stem = "audio"
+    download_name = f"{base_stem}_{outcome_label}.{fmt}"
+
     try:
         _schedule_delete(out_path)
         return send_file(
             out_path,
             mimetype=ffmpeg.mimetype_for_format(fmt),
             as_attachment=True,
-            download_name=f"converted.{fmt}",
+            download_name=download_name,
         )
     except Exception:
         if os.path.isfile(out_path):
             os.remove(out_path)
         raise
+
+
+@bp.route("/convert", methods=["POST"])
+@require_api_key
+def convert():
+    return _audio_transform_response(outcome_label="converted")
+
+
+@bp.route("/resample", methods=["POST"])
+@require_api_key
+def resample():
+    return _audio_transform_response(outcome_label="resampled")

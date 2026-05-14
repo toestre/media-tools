@@ -46,9 +46,9 @@ Extracts the audio track from a media URL via yt-dlp.
 
 ---
 
-### `POST /audio/convert`
+### `POST /audio/convert` · `POST /audio/resample`
 
-Converts or downsamples an audio file via ffmpeg.
+Same behavior: converts or downsamples an audio file via ffmpeg (format, bitrate, sample rate, channels). Use either URL; the suggested download filename differs only in the middle segment.
 
 **Request:** `multipart/form-data`
 
@@ -60,7 +60,7 @@ Converts or downsamples an audio file via ffmpeg.
 | `sample_rate` | int | no | `16000` | Sample rate in Hz (e.g. `16000` for Whisper) |
 | `channels` | int | no | `1` | `1` (mono) or `2` (stereo) |
 
-**Response:** Converted audio file download.
+**Response:** Audio file download. Suggested filename: `{upload_basename_stem}_converted.{format}` when calling `/audio/convert`, or `{upload_basename_stem}_resampled.{format}` when calling `/audio/resample` (stem is taken from the uploaded file name after sanitization; if the stem is empty, `audio` is used).
 
 ---
 
