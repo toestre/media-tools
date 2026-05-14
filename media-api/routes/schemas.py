@@ -11,6 +11,7 @@ class MediaExtractBody(BaseModel):
     quality: int = Field(default=5)
     clip_start: str | None = Field(default=None)
     clip_end: str | None = Field(default=None)
+    filename: str | None = Field(default=None)
 
     @field_validator("url")
     @classmethod
@@ -18,6 +19,16 @@ class MediaExtractBody(BaseModel):
         if not value.strip():
             raise ValueError("url must not be empty")
         return value
+
+    @field_validator("filename")
+    @classmethod
+    def filename_trim_or_none(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        stripped = value.strip()
+        if not stripped:
+            return None
+        return stripped
 
 
 class PdfMetadataBody(BaseModel):

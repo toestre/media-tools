@@ -32,6 +32,12 @@ def extract():
     except ValidationError as exc:
         return jsonify({"detail": exc.errors()}), 400
 
+    download_name = ytdlp.resolve_extract_download_name(
+        explicit_filename=body.filename,
+        url=body.url,
+        audio_format=body.format,
+    )
+
     out_path = ytdlp.extract_audio(
         url=body.url,
         audio_format=body.format,
@@ -47,7 +53,7 @@ def extract():
             out_path,
             mimetype=ytdlp.mimetype_for_format(body.format),
             as_attachment=True,
-            download_name=f"extract.{body.format}",
+            download_name=download_name,
         )
     except Exception:
         if os.path.isfile(out_path):

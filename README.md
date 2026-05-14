@@ -40,6 +40,7 @@ Extracts the audio track from a media URL via yt-dlp.
 | `quality` | int | no | `5` | yt-dlp quality 0 (best) – 9 (worst) |
 | `clip_start` | string | no | – | Start time `hh:mm:ss` |
 | `clip_end` | string | no | – | End time `hh:mm:ss` |
+| `filename` | string | no | – | Download basename (extension ignored; API uses `format`). If omitted, yt-dlp metadata `title` is used (sanitized). |
 
 **Response:** Audio file download.
 

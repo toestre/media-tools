@@ -1,6 +1,7 @@
 """yt-dlp audio extraction."""
 
 import glob
+import json
 import os
 import uuid
 from pathlib import Path
@@ -8,6 +9,57 @@ from pathlib import Path
 from services.runner import run_tool
 
 _ALLOWED_FORMATS = frozenset({"mp3", "wav", "m4a", "ogg"})
+
+
+def sanitize_download_stem(raw: str, *, max_length: int) -> str:
+    """Turn arbitrary text into a single path segment (no slashes)."""
+    s = raw.strip()
+    for char in '<>:"/\\|?*\x00':
+        s = s.replace(char, "_")
+    s = s.strip(" ._")
+    if not s:
+        return "extract"
+    if len(s) > max_length:
+        s = s[:max_length].rstrip(" ._")
+    if not s:
+        return "extract"
+    return s
+
+
+def fetch_video_title(*, url: str) -> str:
+    """Return the video title from yt-dlp metadata (no download)."""
+    cmd = ["yt-dlp", "-j", "--skip-download", "--no-playlist", url]
+    result = run_tool(tool_name="yt-dlp", cmd=cmd)
+    raw = (result.stdout or "").strip()
+    if not raw:
+        raise ValueError("yt-dlp returned empty metadata for title resolution")
+    first_line = raw.splitlines()[0]
+    try:
+        data = json.loads(first_line)
+    except json.JSONDecodeError as exc:
+        raise ValueError("yt-dlp metadata was not valid JSON") from exc
+    title = (data.get("title") or "").strip()
+    if not title:
+        raise ValueError("video metadata contained no title")
+    return title
+
+
+def resolve_extract_download_name(
+    *,
+    explicit_filename: str | None,
+    url: str,
+    audio_format: str,
+) -> str:
+    """Attachment filename for /media/extract (stem sanitized, extension from format)."""
+    max_stem_length = 180
+    if explicit_filename is not None:
+        base = Path(explicit_filename).name
+        stem_part = Path(base).stem if base else ""
+        stem = sanitize_download_stem(stem_part, max_length=max_stem_length)
+        return f"{stem}.{audio_format}"
+    title = fetch_video_title(url=url)
+    stem = sanitize_download_stem(title, max_length=max_stem_length)
+    return f"{stem}.{audio_format}"
 
 
 def extract_audio(
